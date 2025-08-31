@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package evaluate.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/hi120ki/model-armor-evaluator/gen/evaluate/v1";
+
+service EvaluateService {
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
+  rpc Completions(CompletionsRequest) returns (CompletionsResponse);
+}
+
+message ListTemplatesRequest {
+  // No parameters needed for this request
+}
+
+message ListTemplatesResponse {
+  repeated Template templates = 1;
+}
+
+message Template {
+  string name = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 200
+  }];
+  string description = 2 [(buf.validate.field).string = {max_len: 1000}];
+}
+
+message CompletionsRequest {
+  string input = 1 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 1000
+  }];
+  string model = 2 [(buf.validate.field).string = {
+    in: [
+      "gemini-2.5-flash-lite",
+      "gemini-2.5-flash",
+      "gemini-2.5-pro"
+    ]
+  }];
+}
+
+message CompletionsResponse {
+  string output = 1 [(buf.validate.field).string = {max_len: 4000}];
+  repeated Result user_prompt_result = 2;
+  repeated Result model_response_result = 3;
+}
+
+message Result {
+  Template template = 1;
+  FilterMatchState filter_match_state = 2;
+  map<string, FilterResult> filter_results = 3;
+  map<string, RaiFilterTypeResult> rai_filter_type_results = 4;
+}
+
+// https://github.com/googleapis/googleapis/blob/master/google/cloud/modelarmor/v1/service.proto
+enum FilterMatchState {
+  FILTER_MATCH_STATE_UNSPECIFIED = 0;
+  FILTER_MATCH_STATE_NO_MATCH_FOUND = 1;
+  FILTER_MATCH_STATE_MATCH_FOUND = 2;
+}
+
+message FilterResult {
+  oneof filter_result {
+    // Responsible AI filter results.
+    FilterMatchState rai_filter_result = 1;
+
+    // Sensitive Data Protection results.
+    FilterMatchState sdp_filter_result = 2;
+
+    // Prompt injection and Jailbreak filter results.
+    FilterMatchState pi_and_jailbreak_filter_result = 3;
+
+    // Malicious URI filter results.
+    FilterMatchState malicious_uri_filter_result = 4;
+
+    // CSAM filter results.
+    FilterMatchState csam_filter_filter_result = 5;
+
+    // Virus scan results.
+    FilterMatchState virus_scan_filter_result = 6;
+  }
+}
+
+message RaiFilterTypeResult {
+  // Type of responsible AI filter.
+  RaiFilterType filter_type = 1;
+
+  // Confidence level identified for this RAI filter.
+  DetectionConfidenceLevel confidence_level = 2;
+
+  // Output only. Match state for this RAI filter.
+  FilterMatchState match_state = 3;
+}
+
+enum RaiFilterType {
+  // Unspecified filter type.
+  RAI_FILTER_TYPE_UNSPECIFIED = 0;
+
+  // Sexually Explicit.
+  RAI_FILTER_TYPE_SEXUALLY_EXPLICIT = 2;
+
+  // Hate Speech.
+  RAI_FILTER_TYPE_HATE_SPEECH = 3;
+
+  // Harassment.
+  RAI_FILTER_TYPE_HARASSMENT = 6;
+
+  // Danger
+  RAI_FILTER_TYPE_DANGEROUS = 17;
+}
+
+enum DetectionConfidenceLevel {
+  // Same as LOW_AND_ABOVE.
+  DETECTION_CONFIDENCE_LEVEL_UNSPECIFIED = 0;
+
+  // Highest chance of a false positive.
+  DETECTION_CONFIDENCE_LEVEL_LOW_AND_ABOVE = 1;
+
+  // Some chance of false positives.
+  DETECTION_CONFIDENCE_LEVEL_MEDIUM_AND_ABOVE = 2;
+
+  // Low chance of false positives.
+  DETECTION_CONFIDENCE_LEVEL_HIGH = 3;
+}

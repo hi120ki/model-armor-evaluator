@@ -1,0 +1,6 @@
+localtion: "us-west1"
+templates:
+  - name: "projects/<your-gcp-project-id>/locations/us-west1/templates/mid-template"
+    description: "Medium template"
+  - name: "projects/<your-gcp-project-id>/locations/us-west1/templates/high-template"
+    description: "High template"
