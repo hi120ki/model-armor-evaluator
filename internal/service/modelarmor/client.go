@@ -42,6 +42,9 @@ func (s *Service) SanitizeUserPrompt(ctx context.Context, templateName, userProm
 	req := &modelarmorpb.SanitizeUserPromptRequest{
 		Name:           templateName,
 		UserPromptData: userPromptData,
+		MultiLanguageDetectionMetadata: &modelarmorpb.MultiLanguageDetectionMetadata{
+			EnableMultiLanguageDetection: true,
+		},
 	}
 
 	resp, err := s.client.SanitizeUserPrompt(ctx, req)
@@ -66,6 +69,9 @@ func (s *Service) SanitizeModelResponse(ctx context.Context, templateName, userP
 		Name:              templateName,
 		ModelResponseData: modelResponseData,
 		UserPrompt:        userPrompt,
+		MultiLanguageDetectionMetadata: &modelarmorpb.MultiLanguageDetectionMetadata{
+			EnableMultiLanguageDetection: true,
+		},
 	}
 
 	resp, err := s.client.SanitizeModelResponse(ctx, req)
